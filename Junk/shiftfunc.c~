@@ -1,0 +1,34 @@
+static PyObject *
+py_shift_function(PyObject *obj, PyObject *args)
+{
+  double shift = 0.0;
+  if (!PyArg_ParseTuple(args, "d", &shift)) {
+    PyErr_SetString(PyExc_RuntimeError, "invalid parameters");
+    return NULL;
+  } else {
+    /* assign the shift to a dynamically allocated location: */
+    double *cdata = (double*)malloc(sizeof(double));
+    *cdata = shift;
+    /* wrap function and callback_data in a CObject: */
+    return PyCObject_FromVoidPtrAndDesc(_shift_function, cdata,
+                                        _destructor);
+  }
+}
+
+static void
+_destructor(void* cobject, void *cdata)
+{
+  if (cdata)
+    free(cdata);
+}
+
+static PyMethodDef methods[] = {
+  {"shift_function", (PyCFunction)py_shift_function, METH_VARARGS, ""},
+  {NULL, NULL, 0, NULL}
+};
+
+void
+initexample(void)
+{
+  Py_InitModule("example", methods);
+}
